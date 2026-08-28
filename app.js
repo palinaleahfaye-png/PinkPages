@@ -214,10 +214,10 @@ window.viewBookDetails = async function(bookId) {
 
   try {
     const { data: book, error } = await supabase
-      .from('books')
-      .select('*, profiles!seller_id(full_name)')
-      .eq('id', bookId)
-      .single();
+  .from('books')
+  .select('*')
+  .eq('id', bookId)
+  .single();
 
     if (error) throw error;
     if (!book) throw new Error("Book not found.");
