@@ -228,7 +228,7 @@ window.viewBookDetails = async function(bookId) {
           <img src="${escapeHtml(book.image_url)}" style="max-width: 300px; border-radius: 12px;" alt="${escapeHtml(book.title)}">
           <div>
             <h2>${escapeHtml(book.title)}</h2>
-            <p class="author">Author: ${escapeHtml(book.author)}</p>
+          <p>Seller: Anonymous</p>
             <p>Seller: ${escapeHtml(book.profiles?.full_name || 'Anonymous')}</p>
             <h3 class="price" style="margin: 1rem 0;">₱${parseFloat(book.price || 0).toFixed(2)}</h3>
             <p style="margin-bottom: 1.5rem;">${escapeHtml(book.description)}</p>
