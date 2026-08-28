@@ -109,18 +109,47 @@ function renderBooks(books, targetElementId) {
     return;
   }
 
-  container.innerHTML = books.map(book => `
-    <div class="book-card">
-      <img src="${book.image_url || ''}" alt="${book.title || 'Book'}">
-      <h3>${book.title || 'Untitled Book'}</h3>
-      <p class="author">by ${book.author || 'Unknown Author'}</p>
-      <p class="price">₱${Number(book.price || 0).toFixed(2)}</p>
+  container.innerHTML = books.map(book => {
 
-      <button type="button" class="btn btn-outline view-details-btn">
-        View Details
-      </button>
-    </div>
-  `).join("")
+    const isMyProducts = targetElementId === "user-books-grid";
+
+    return `
+      <div class="book-card">
+        <img 
+          src="${book.image_url || ''}" 
+          alt="${book.title || 'Book'}"
+        >
+
+        <h3>${book.title || 'Untitled Book'}</h3>
+
+        <p class="author">
+          by ${book.author || 'Unknown Author'}
+        </p>
+
+        <p class="price">
+          ₱${Number(book.price || 0).toFixed(2)}
+        </p>
+
+        ${
+          isMyProducts
+            ? `<button 
+                 type="button"
+                 class="btn btn-outline"
+                 onclick="window.viewBookDetails('${book.id}')">
+                 View Details
+               </button>`
+            : `<button 
+                 type="button"
+                 class="btn btn-outline"
+                 onclick="window.viewBookDetails('${book.id}')">
+                 View Details
+               </button>`
+        }
+
+      </div>
+    `;
+  }).join("");
+}
 
   container.querySelectorAll(".view-details-btn").forEach((button, index) => {
     button.addEventListener("click", function(e) {
