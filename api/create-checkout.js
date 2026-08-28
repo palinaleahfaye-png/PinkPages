@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const paymongoResponse = await fetch(
+    const response = await fetch(
       "https://api.paymongo.com/v1/checkout_sessions",
       {
         method: "POST",
@@ -35,27 +35,19 @@ export default async function handler(req, res) {
                   quantity: 1
                 }
               ],
-              payment_method_types: [
-                "gcash",
-                "card",
-                "paymaya"
-              ],
-              success_url:
-                "https://pink-pages-6eyt.vercel.app",
-              cancel_url:
-                "https://pink-pages-6eyt.vercel.app"
+              description: "PinkPages Book Purchase"
             }
           }
         })
       }
     );
 
-    const result = await paymongoResponse.json();
+    const result = await response.json();
 
-    if (!paymongoResponse.ok) {
-      console.error("PayMongo error:", result);
+    if (!response.ok) {
+      console.error("PayMongo:", result);
 
-      return res.status(paymongoResponse.status).json({
+      return res.status(response.status).json({
         error: "PayMongo error",
         details: result
       });
@@ -66,7 +58,7 @@ export default async function handler(req, res) {
 
     if (!checkoutUrl) {
       return res.status(500).json({
-        error: "PayMongo did not return a checkout URL"
+        error: "No checkout URL returned"
       });
     }
 
@@ -75,10 +67,11 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("Checkout error:", error);
+    console.error(error);
 
     return res.status(500).json({
-      error: "Payment initiation failed"
+      error: error.message
     });
   }
 }
+
