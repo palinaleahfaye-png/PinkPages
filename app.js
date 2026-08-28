@@ -120,28 +120,70 @@ window.filterBooks = function() {
 
 // BOOK DETAILS, REVIEWS & PAYMONGO PAYMENT
 window.viewBookDetails = async function(bookId) {
-  const { data: book } = await supabase.from('books').select('*, profiles(full_name)').eq('id', bookId).single();
-  if (!book) return;
+  try {
+    const { data: book, error } = await supabase
+      .from('books')
+      .select('*')
+      .eq('id', bookId)
+      .single();
 
-  const container = document.getElementById('details-container');
-  container.innerHTML = `
-    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-      <img src="${book.image_url}" style="max-width: 300px; border-radius: 12px;">
-      <div>
-        <h2>${book.title}</h2>
-        <p class="author">Author: ${book.author}</p>
-        <p>Seller: ${book.profiles?.full_name || 'Anonymous'}</p>
-        <h3 class="price" style="margin: 1rem 0;">₱${parseFloat(book.price).toFixed(2)}</h3>
-        <p style="margin-bottom: 1.5rem;">${book.description}</p>
-        <button class="btn btn-primary" onclick="initiatePayment('${book.id}', ${book.price}, '${book.seller_id}')">Buy Now with PayMongo</button>
+    if (error) {
+      console.error('Book details error:', error);
+      alert('Unable to load book details: ' + error.message);
+      return;
+    }
+
+    if (!book) {
+      alert('Book not found.');
+      return;
+    }
+
+    const container = document.getElementById('details-container');
+
+    container.innerHTML = `
+      <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+        <img 
+          src="${book.image_url}" 
+          alt="${book.title}"
+          style="max-width:300px; width:100%; border-radius:12px;"
+        >
+
+        <div>
+          <h2>${book.title}</h2>
+          <p class="author">Author: ${book.author}</p>
+
+          <h3 class="price" style="margin:1rem 0;">
+            ₱${Number(book.price).toFixed(2)}
+          </h3>
+
+          <p style="margin-bottom:1.5rem;">
+            ${book.description || 'No description available.'}
+          </p>
+
+          <button 
+            class="btn btn-primary"
+            onclick="initiatePayment('${book.id}', ${Number(book.price)}, '${book.seller_id}')"
+          >
+            Buy Now with PayMongo
+          </button>
+        </div>
       </div>
-    </div>
-  `;
+    `;
 
-  document.getElementById('review-book-id').value = bookId;
-  document.getElementById('add-review-form').classList.toggle('hidden', !currentUser);
-  loadReviews(bookId);
-  showSection('book-details');
+    document.getElementById('review-book-id').value = bookId;
+
+    document
+      .getElementById('add-review-form')
+      .classList.toggle('hidden', !currentUser);
+
+    await loadReviews(bookId);
+
+    showSection('book-details');
+
+  } catch (err) {
+    console.error('View details error:', err);
+    alert('Something went wrong loading this book.');
+  }
 };
 
 async function loadReviews(bookId) {
