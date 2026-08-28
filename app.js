@@ -208,14 +208,30 @@ window.viewBookDetails = async function(bookId) {
   if (container) container.innerHTML = '<p class="loading">Loading details...</p>';
 
   try {
-    const { data: book, error } = await supabase
+    // 1. Fetch book data directly
+    const { data: book, error: bookError } = await supabase
       .from('books')
-      .select('*, profiles(full_name)')
+      .select('*')
       .eq('id', bookId)
       .single();
 
-    if (error || !book) throw new Error("Unable to retrieve book details.");
+    if (bookError || !book) throw new Error(bookError?.message || "Book not found.");
 
+    // 2. Fetch seller profile separately if seller_id exists
+    let sellerName = 'Anonymous';
+    if (book.seller_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', book.seller_id)
+        .single();
+      
+      if (profile && profile.full_name) {
+        sellerName = profile.full_name;
+      }
+    }
+
+    // 3. Render HTML
     if (container) {
       container.innerHTML = `
         <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
@@ -223,7 +239,7 @@ window.viewBookDetails = async function(bookId) {
           <div>
             <h2>${escapeHtml(book.title)}</h2>
             <p class="author">Author: ${escapeHtml(book.author)}</p>
-            <p>Seller: ${escapeHtml(book.profiles?.full_name || 'Anonymous')}</p>
+            <p>Seller: ${escapeHtml(sellerName)}</p>
             <h3 class="price" style="margin: 1rem 0;">₱${parseFloat(book.price).toFixed(2)}</h3>
             <p style="margin-bottom: 1.5rem;">${escapeHtml(book.description)}</p>
             <button class="btn btn-primary" onclick="window.initiatePayment('${book.id}', ${book.price}, '${book.seller_id}')">
@@ -243,26 +259,9 @@ window.viewBookDetails = async function(bookId) {
     await loadReviews(bookId);
     window.showSection('book-details');
   } catch (err) {
-    showNotification(err.message, true);
+    showNotification('Unable to retrieve book details: ' + err.message, true);
   }
 };
-
-async function loadReviews(bookId) {
-  const container = document.getElementById('reviews-list');
-  if (!container) return;
-
-  try {
-    const { data: reviews, error } = await supabase
-      .from('reviews')
-      .select('*, profiles(full_name)')
-      .eq('book_id', bookId);
-
-    if (error) throw error;
-
-    if (!reviews || reviews.length === 0) {
-      container.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
-      return;
-    }
 
     container.innerHTML = reviews.map(r => `
       <div style="background: #f9f9f9; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
