@@ -253,17 +253,27 @@ window.viewBookDetails = async function(bookId) {
     showNotification("Unable to retrieve book details: " + err.message, true);
   }
 };
-
 async function loadReviews(bookId) {
   const container = document.getElementById('reviews-list');
-  if (!container) return;
+
+  console.log('Loading reviews for book:', bookId);
+
+  if (!container) {
+    console.error('reviews-list container not found!');
+    return;
+  }
+
+  container.innerHTML = '<p>Loading reviews...</p>';
 
   try {
-   const { data: reviews, error } = await supabase
-  .from('reviews')
-  .select('*')
-  .eq('book_id', bookId)
-  .order('created_at', { ascending: false });
+    const { data: reviews, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('book_id', bookId)
+      .order('created_at', { ascending: false });
+
+    console.log('Reviews data:', reviews);
+    console.log('Reviews error:', error);
 
     if (error) throw error;
 
@@ -272,14 +282,20 @@ async function loadReviews(bookId) {
       return;
     }
 
-   container.innerHTML = reviews.map(r => `
-  <div style="background: #f9f9f9; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
-    <strong>User</strong> - ${'⭐'.repeat(r.rating || 5)}
-    <p>${escapeHtml(r.comment || '')}</p>
-  </div>
-`).join('');
+    container.innerHTML = reviews.map(r => `
+      <div style="background: #f9f9f9; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
+        <strong>User</strong> - ${'⭐'.repeat(Number(r.rating) || 0)}
+        <p>${escapeHtml(r.comment || '')}</p>
+      </div>
+    `).join('');
+
   } catch (err) {
-    console.error("Error loading reviews:", err);
+    console.error('Error loading reviews:', err);
+    container.innerHTML = `
+      <p class="error">
+        Unable to load reviews: ${escapeHtml(err.message)}
+      </p>
+    `;
   }
 }
 
