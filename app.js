@@ -183,7 +183,56 @@ window.handleReviewSubmit = async function(e) {
 };
 
 // SELL NEW PRODUCT
+
 window.handleSellBook = async function(e) {
+  e.preventDefault();
+
+  // Get the actual logged-in user directly from Supabase
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    alert('Please login first before publishing a book.');
+    return;
+  }
+
+  const title = document.getElementById('book-title').value.trim();
+  const author = document.getElementById('book-author').value.trim();
+  const price = parseFloat(document.getElementById('book-price').value);
+  const image_url = document.getElementById('book-image').value.trim();
+  const description = document.getElementById('book-desc').value.trim();
+
+  if (!title || !author || !price || !image_url || !description) {
+    alert('Please complete all fields.');
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from('books')
+    .insert([{
+      seller_id: user.id,
+      title: title,
+      author: author,
+      price: price,
+      image_url: image_url,
+      description: description
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Publish book error:', error);
+    alert('Failed to publish book: ' + error.message);
+    return;
+  }
+
+  alert('Book listed successfully! 📚💕');
+
+  document.getElementById('sell-book-form').reset();
+
+  showSection('dashboard');
+};
+
+  
   e.preventDefault();
   if (!currentUser) return alert('Please login to sell products.');
 
