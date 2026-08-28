@@ -120,7 +120,21 @@ function renderBooks(books, targetElementId) {
         View Details
       </button>
     </div>
-  `).join("");
+  `).join("")
+
+  container.querySelectorAll(".view-details-btn").forEach((button, index) => {
+    button.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const book = books[index];
+
+      if (book && book.id) {
+        window.viewBookDetails(book.id);
+      }
+    });
+  });
+}
 
 
 
