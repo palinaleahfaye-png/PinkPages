@@ -11,7 +11,7 @@ let authMode = 'login'; // 'login' or 'signup'
 // INITIALIZATION
 document.addEventListener('DOMContentLoaded', async () => {
   const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
+  if (user) { 
     currentUser = user;
     updateNavUI(true);
   } else {
