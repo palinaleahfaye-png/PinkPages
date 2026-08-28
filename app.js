@@ -259,11 +259,11 @@ async function loadReviews(bookId) {
   if (!container) return;
 
   try {
-    const { data: reviews, error } = await supabase
-      .from('reviews')
-      .select('*, profiles(full_name)')
-      .eq('book_id', bookId)
-      .order('created_at', { ascending: false });
+   const { data: reviews, error } = await supabase
+  .from('reviews')
+  .select('*')
+  .eq('book_id', bookId)
+  .order('created_at', { ascending: false });
 
     if (error) throw error;
 
@@ -272,12 +272,12 @@ async function loadReviews(bookId) {
       return;
     }
 
-    container.innerHTML = reviews.map(r => `
-      <div style="background: #f9f9f9; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
-        <strong>${escapeHtml(r.profiles?.full_name || 'User')}</strong> - ${'⭐'.repeat(r.rating || 5)}
-        <p>${escapeHtml(r.comment)}</p>
-      </div>
-    `).join('');
+   container.innerHTML = reviews.map(r => `
+  <div style="background: #f9f9f9; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
+    <strong>User</strong> - ${'⭐'.repeat(r.rating || 5)}
+    <p>${escapeHtml(r.comment || '')}</p>
+  </div>
+`).join('');
   } catch (err) {
     console.error("Error loading reviews:", err);
   }
