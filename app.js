@@ -246,10 +246,23 @@ async function loadDashboard() {
     : '<p>No purchase history found.</p>';
 }
 
-window.switchDashTab = function(tabName) {
-  document.querySelectorAll('.dash-tab-content').forEach(el => el.classList.add('hidden'));
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  
-  document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-  event.target.classList.add('active');
+
+window.switchDashTab = function(tabName, event) {
+  document.querySelectorAll('.dash-tab-content').forEach(el => {
+    el.classList.add('hidden');
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  const selectedTab = document.getElementById(tab-${tabName});
+
+  if (selectedTab) {
+    selectedTab.classList.remove('hidden');
+  }
+
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+  }
 };
