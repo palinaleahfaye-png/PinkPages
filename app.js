@@ -122,19 +122,7 @@ function renderBooks(books, targetElementId) {
     </div>
   `).join("");
 
-  container.querySelectorAll(".view-details-btn").forEach((button, index) => {
-    button.addEventListener("click", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
 
-      const book = books[index];
-
-      if (book && book.id) {
-        window.viewBookDetails(book.id);
-      }
-    });
-  });
-}
 
 window.filterBooks = function() {
   const query = document.getElementById('search-input').value.toLowerCase();
