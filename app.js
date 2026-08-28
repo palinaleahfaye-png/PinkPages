@@ -187,20 +187,29 @@ window.viewBookDetails = async function(bookId) {
 };
 
 async function loadReviews(bookId) {
-  const { data: reviews } = await supabase
-    .from('reviews')
-    .select('*, profiles(full_name)')
-    .eq('book_id', bookId);
-
   const container = document.getElementById('reviews-list');
+
+  const { data: reviews, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('book_id', bookId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Review loading error:', error);
+    container.innerHTML = '<p>Unable to load reviews.</p>';
+    return;
+  }
+
   if (!reviews || reviews.length === 0) {
     container.innerHTML = '<p>No reviews yet. Be the first to review!</p>';
     return;
   }
 
   container.innerHTML = reviews.map(r => `
-    <div style="background: white; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
-      <strong>${r.profiles?.full_name || 'User'}</strong> - ${'⭐'.repeat(r.rating)}
+    <div style="background:white; padding:1rem; margin:0.5rem 0; border-radius:8px;">
+      <strong>Customer</strong>
+      <span> - ${'⭐'.repeat(Number(r.rating))}</span>
       <p>${r.comment}</p>
     </div>
   `).join('');
