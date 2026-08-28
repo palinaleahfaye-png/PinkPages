@@ -1,7 +1,7 @@
 // SUPABASE CONFIGURATION
 // Replace these with your actual Supabase project credentials
-const SUPABASE_URL = "https://tmremnyrfhrlusiykjno.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_SFLmJJ1EskVB8Me8DDnYpQ_oxkUKWyp";
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -227,7 +227,7 @@ window.initiatePayment = async function(bookId, amount, sellerId) {
 // DASHBOARD MANAGEMENT
 async function loadDashboard() {
   if (!currentUser) return showSection('auth');
-  document.getElementById('welcome-message').innerText = Logged in as: ${currentUser.email};
+  document.getElementById('welcome-message').innerText = `Logged in as: ${currentUser.email}`;
 
   // User's own product listings
   const { data: myBooks } = await supabase.from('books').select('*').eq('seller_id', currentUser.id);
@@ -236,31 +236,20 @@ async function loadDashboard() {
   // Sales History
   const { data: sales } = await supabase.from('orders').select('*, books(title)').eq('seller_id', currentUser.id);
   document.getElementById('sales-history-list').innerHTML = (sales && sales.length)
-    ? sales.map(s => <p>Sold <strong>${s.books?.title}</strong> for ₱${s.amount} [Status: ${s.status}]</p>).join('')
+    ? sales.map(s => `<p>Sold <strong>${s.books?.title}</strong> for ₱${s.amount} [Status: ${s.status}]</p>`).join('')
     : '<p>No sales history found.</p>';
 
   // Bought History
   const { data: bought } = await supabase.from('orders').select('*, books(title)').eq('buyer_id', currentUser.id);
   document.getElementById('bought-history-list').innerHTML = (bought && bought.length)
-    ? bought.map(b => <p>Purchased <strong>${b.books?.title}</strong> for ₱${b.amount} [Status: ${b.status}]</p>).join('')
+    ? bought.map(b => `<p>Purchased <strong>${b.books?.title}</strong> for ₱${b.amount} [Status: ${b.status}]</p>`).join('')
     : '<p>No purchase history found.</p>';
 }
 
-// FIXED DASHBOARD TABS
-window.switchDashTab = function(tabName, event) {
+window.switchDashTab = function(tabName) {
   document.querySelectorAll('.dash-tab-content').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-
-  const tab = document.getElementById(tab-${tabName});
-
-  if (tab) {
-    tab.classList.remove('hidden');
-  }
-
-  if (event) {
-    event.currentTarget.classList.add('active');
-  }
+  
+  document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+  event.target.classList.add('active');
 };
-Sent
-Compose
-Write to
