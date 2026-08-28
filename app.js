@@ -82,10 +82,15 @@ window.toggleAuthMode = function(e) {
 
   const isLogin = authMode === 'login';
   
-  document.getElementById('auth-title').innerText = isLogin ? 'Login to PinkPages' : 'Sign Up for PinkPages';
-  document.getElementById('auth-submit-btn').innerText = isLogin ? 'Login' : 'Sign Up';
-  document.getElementById('auth-toggle-text').innerText = isLogin ? "Don't have an account?" : "Already have an account?";
-  document.getElementById('auth-toggle-btn').innerText = isLogin ? "Sign Up" : "Login";
+  const title = document.getElementById('auth-title');
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const toggleText = document.getElementById('auth-toggle-text');
+  const toggleBtn = document.getElementById('auth-toggle-btn');
+
+  if (title) title.innerText = isLogin ? 'Login to PinkPages' : 'Sign Up for PinkPages';
+  if (submitBtn) submitBtn.innerText = isLogin ? 'Login' : 'Sign Up';
+  if (toggleText) toggleText.innerText = isLogin ? "Don't have an account?" : "Already have an account?";
+  if (toggleBtn) toggleBtn.innerText = isLogin ? "Sign Up" : "Login";
 
   document.getElementById('name-group')?.classList.toggle('hidden', isLogin);
   document.getElementById('gcash-group')?.classList.toggle('hidden', isLogin);
@@ -208,7 +213,6 @@ window.viewBookDetails = async function(bookId) {
   if (container) container.innerHTML = '<p class="loading">Loading details...</p>';
 
   try {
-    // Notice the explicitly defined foreign key join: profiles!seller_id(...)
     const { data: book, error } = await supabase
       .from('books')
       .select('*, profiles!seller_id(full_name)')
@@ -226,7 +230,7 @@ window.viewBookDetails = async function(bookId) {
             <h2>${escapeHtml(book.title)}</h2>
             <p class="author">Author: ${escapeHtml(book.author)}</p>
             <p>Seller: ${escapeHtml(book.profiles?.full_name || 'Anonymous')}</p>
-            <h3 class="price" style="margin: 1rem 0;">₱${parseFloat(book.price).toFixed(2)}</h3>
+            <h3 class="price" style="margin: 1rem 0;">₱${parseFloat(book.price || 0).toFixed(2)}</h3>
             <p style="margin-bottom: 1.5rem;">${escapeHtml(book.description)}</p>
             <button class="btn btn-primary" onclick="window.initiatePayment('${book.id}', ${book.price}, '${book.seller_id}')">
               Buy Now with PayMongo
@@ -249,6 +253,24 @@ window.viewBookDetails = async function(bookId) {
     showNotification("Unable to retrieve book details: " + err.message, true);
   }
 };
+
+async function loadReviews(bookId) {
+  const container = document.getElementById('reviews-list');
+  if (!container) return;
+
+  try {
+    const { data: reviews, error } = await supabase
+      .from('reviews')
+      .select('*, profiles(full_name)')
+      .eq('book_id', bookId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (!reviews || reviews.length === 0) {
+      container.innerHTML = '<p>No reviews yet.</p>';
+      return;
+    }
 
     container.innerHTML = reviews.map(r => `
       <div style="background: #f9f9f9; padding: 1rem; margin: 0.5rem 0; border-radius: 8px;">
