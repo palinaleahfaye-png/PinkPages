@@ -178,8 +178,24 @@ window.filterBooks = function() {
 
 // BOOK DETAILS, REVIEWS & PAYMONGO PAYMENT
 window.viewBookDetails = async function(bookId) {
-  const { data: book } = await supabase.from('books').select('*, profiles(full_name)').eq('id', bookId).single();
-  if (!book) return;
+ window.viewBookDetails = async function(bookId) {
+
+  const { data: book, error } = await supabase
+    .from('books')
+    .select('*')
+    .eq('id', bookId)
+    .single();
+
+  if (error) {
+    console.error(error);
+    alert("Unable to load book: " + error.message);
+    return;
+  }
+
+  if (!book) {
+    alert("Book not found.");
+    return;
+  } 
 
   const container = document.getElementById('details-container');
   container.innerHTML = `
@@ -304,10 +320,11 @@ async function loadDashboard() {
     : '<p>No purchase history found.</p>';
 }
 
-window.switchDashTab = function(tabName) {
+window.switchDashTab = function(tabName, event) {
   document.querySelectorAll('.dash-tab-content').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
   
   document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-  event.target.classList.add('active');
-};
+ if (event && event.currentTarget) {
+  event.currentTarget.classList.add('active');
+} 
