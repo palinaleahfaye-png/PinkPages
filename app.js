@@ -248,18 +248,18 @@ async function loadDashboard() {
 
 
 window.switchDashTab = function(tabName, event) {
-  document.querySelectorAll('.dash-tab-content').forEach(el => {
+  document.querySelectorAll('.dash-tab-content').forEach(function(el) {
     el.classList.add('hidden');
   });
 
-  document.querySelectorAll('.tab-btn').forEach(btn => {
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.classList.remove('active');
   });
 
-  const selectedTab = document.getElementById(tab-${tabName});
+  const tab = document.getElementById('tab-' + tabName);
 
-  if (selectedTab) {
-    selectedTab.classList.remove('hidden');
+  if (tab) {
+    tab.classList.remove('hidden');
   }
 
   if (event && event.currentTarget) {
