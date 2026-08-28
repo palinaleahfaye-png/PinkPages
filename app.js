@@ -19,11 +19,16 @@ let authMode = "login";
 // INITIALIZATION
 // ==========================================
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async function () {
   try {
     const {
-      data: { user }
+      data: { user },
+      error
     } = await supabase.auth.getUser();
+
+    if (error) {
+      console.error("Auth error:", error);
+    }
 
     if (user) {
       currentUser = user;
@@ -34,8 +39,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadBooks();
 
-  } catch (error) {
-    console.error("Initialization error:", error);
+  } catch (err) {
+    console.error("Initialization error:", err);
   }
 });
 
@@ -48,7 +53,7 @@ window.showSection = function (sectionId) {
 
   document
     .querySelectorAll(".page-section")
-    .forEach(section => {
+    .forEach(function (section) {
       section.classList.add("hidden");
     });
 
@@ -74,20 +79,34 @@ window.showSection = function (sectionId) {
 
 function updateNavUI(isLoggedIn) {
 
-  const loginBtn = document.getElementById("nav-login-btn");
-  const logoutBtn = document.getElementById("nav-logout-btn");
-  const dashboardBtn = document.getElementById("nav-dashboard");
+  const loginBtn =
+    document.getElementById("nav-login-btn");
+
+  const logoutBtn =
+    document.getElementById("nav-logout-btn");
+
+  const dashboardBtn =
+    document.getElementById("nav-dashboard");
 
   if (loginBtn) {
-    loginBtn.classList.toggle("hidden", isLoggedIn);
+    loginBtn.classList.toggle(
+      "hidden",
+      isLoggedIn
+    );
   }
 
   if (logoutBtn) {
-    logoutBtn.classList.toggle("hidden", !isLoggedIn);
+    logoutBtn.classList.toggle(
+      "hidden",
+      !isLoggedIn
+    );
   }
 
   if (dashboardBtn) {
-    dashboardBtn.classList.toggle("hidden", !isLoggedIn);
+    dashboardBtn.classList.toggle(
+      "hidden",
+      !isLoggedIn
+    );
   }
 }
 
@@ -102,14 +121,28 @@ window.toggleAuthMode = function (e) {
     e.preventDefault();
   }
 
-  authMode = authMode === "login" ? "signup" : "login";
+  authMode =
+    authMode === "login"
+      ? "signup"
+      : "login";
 
-  const title = document.getElementById("auth-title");
-  const submitBtn = document.getElementById("auth-submit-btn");
-  const toggleText = document.getElementById("auth-toggle-text");
-  const toggleBtn = document.getElementById("auth-toggle-btn");
-  const nameGroup = document.getElementById("name-group");
-  const gcashGroup = document.getElementById("gcash-group");
+  const title =
+    document.getElementById("auth-title");
+
+  const submitBtn =
+    document.getElementById("auth-submit-btn");
+
+  const toggleText =
+    document.getElementById("auth-toggle-text");
+
+  const toggleBtn =
+    document.getElementById("auth-toggle-btn");
+
+  const nameGroup =
+    document.getElementById("name-group");
+
+  const gcashGroup =
+    document.getElementById("gcash-group");
 
   if (title) {
     title.innerText =
@@ -159,36 +192,67 @@ window.handleAuth = async function (e) {
 
   e.preventDefault();
 
-  const email =
-    document.getElementById("auth-email").value.trim();
+  const emailElement =
+    document.getElementById("auth-email");
 
-  const password =
-    document.getElementById("auth-password").value;
+  const passwordElement =
+    document.getElementById("auth-password");
 
-  if (!email || !password) {
-    alert("Please enter your email and password.");
+  if (!emailElement || !passwordElement) {
+    alert("Login form could not be found.");
     return;
   }
 
+  const email =
+    emailElement.value.trim();
+
+  const password =
+    passwordElement.value;
+
+  if (!email || !password) {
+    alert(
+      "Please enter your email and password."
+    );
+    return;
+  }
+
+
+  // SIGN UP
   if (authMode === "signup") {
 
+    const nameElement =
+      document.getElementById("auth-name");
+
+    const gcashElement =
+      document.getElementById("auth-gcash");
+
     const fullName =
-      document.getElementById("auth-name")?.value.trim() || "";
+      nameElement
+        ? nameElement.value.trim()
+        : "";
 
     const gcashNumber =
-      document.getElementById("auth-gcash")?.value.trim() || "";
+      gcashElement
+        ? gcashElement.value.trim()
+        : "";
 
-    const { data, error } =
-      await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          data: {
-            full_name: fullName,
-            gcash_number: gcashNumber
-          }
+    const {
+      data,
+      error
+    } = await supabase.auth.signUp({
+
+      email: email,
+
+      password: password,
+
+      options: {
+        data: {
+          full_name: fullName,
+          gcash_number: gcashNumber
         }
-      });
+      }
+
+    });
 
     if (error) {
       alert(error.message);
@@ -199,25 +263,32 @@ window.handleAuth = async function (e) {
       "Signup successful! Please check your email to confirm registration."
     );
 
-  } else {
-
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    currentUser = data.user;
-
-    updateNavUI(true);
-
-    showSection("dashboard");
+    return;
   }
+
+
+  // LOGIN
+  const {
+    data,
+    error
+  } = await supabase.auth.signInWithPassword({
+
+    email: email,
+
+    password: password
+
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  currentUser = data.user;
+
+  updateNavUI(true);
+
+  showSection("dashboard");
 };
 
 
@@ -227,11 +298,20 @@ window.handleAuth = async function (e) {
 
 window.handleLogout = async function () {
 
-  const { error } =
-    await supabase.auth.signOut();
+  try {
 
-  if (error) {
-    console.error("Logout error:", error);
+    const { error } =
+      await supabase.auth.signOut();
+
+    if (error) {
+      console.error(
+        "Logout error:",
+        error
+      );
+    }
+
+  } catch (err) {
+    console.error(err);
   }
 
   currentUser = null;
@@ -248,16 +328,26 @@ window.handleLogout = async function () {
 
 async function loadBooks() {
 
-  const { data: books, error } =
-    await supabase
-      .from("books")
-      .select("*")
-      .order("created_at", {
+  const {
+    data: books,
+    error
+  } = await supabase
+    .from("books")
+    .select("*")
+    .order(
+      "created_at",
+      {
         ascending: false
-      });
+      }
+    );
 
   if (error) {
-    console.error("Load books error:", error);
+
+    console.error(
+      "Load books error:",
+      error
+    );
+
     return;
   }
 
@@ -272,16 +362,23 @@ async function loadBooks() {
 // RENDER BOOKS
 // ==========================================
 
-function renderBooks(books, targetElementId) {
+function renderBooks(
+  books,
+  targetElementId
+) {
 
   const container =
-    document.getElementById(targetElementId);
-
-  if (!container) {
-    console.warn(
-      "Container not found:",
+    document.getElementById(
       targetElementId
     );
+
+  if (!container) {
+
+    console.warn(
+      "Book container not found:",
+      targetElementId
+    );
+
     return;
   }
 
@@ -293,88 +390,111 @@ function renderBooks(books, targetElementId) {
     return;
   }
 
-  container.innerHTML = books.map(book => `
+  container.innerHTML =
+    books.map(function (book) {
 
-    <div class="book-card">
+      return `
 
-      <img
-        src="${book.image_url || ""}"
-        alt="${book.title || "Book"}"
-      >
+        <div class="book-card">
 
-      <h3>${book.title || "Untitled Book"}</h3>
+          <img
+            src="${book.image_url || ""}"
+            alt="${book.title || "Book"}"
+          >
 
-      <p class="author">
-        by ${book.author || "Unknown Author"}
-      </p>
+          <h3>
+            ${book.title || "Untitled Book"}
+          </h3>
 
-      <p class="price">
-        ₱${Number(book.price || 0).toFixed(2)}
-      </p>
+          <p class="author">
+            by ${book.author || "Unknown Author"}
+          </p>
 
-      <button
-        type="button"
-        class="btn btn-outline"
-        onclick="viewBookDetails('${book.id}')"
-      >
-        View Details
-      </button>
+          <p class="price">
+            ₱${Number(book.price || 0).toFixed(2)}
+          </p>
 
-    </div>
+          <button
+            type="button"
+            class="btn btn-outline"
+            onclick="viewBookDetails('${book.id}')"
+          >
+            View Details
+          </button>
 
-  `).join("");
+        </div>
+
+      `;
+
+    }).join("");
 }
 
 
 // ==========================================
-// SEARCH / FILTER
+// SEARCH / FILTER BOOKS
 // ==========================================
 
 window.filterBooks = function () {
 
   const searchInput =
-    document.getElementById("search-input");
+    document.getElementById(
+      "search-input"
+    );
 
   if (!searchInput) return;
 
   const query =
-    searchInput.value.toLowerCase();
+    searchInput.value
+      .toLowerCase()
+      .trim();
 
   document
-    .querySelectorAll("#book-grid .book-card")
-    .forEach(card => {
+    .querySelectorAll(
+      "#book-grid .book-card"
+    )
+    .forEach(function (card) {
 
       const title =
-        card.querySelector("h3")?.innerText
+        card.querySelector("h3")
+          ?.innerText
           .toLowerCase() || "";
 
       const author =
-        card.querySelector(".author")?.innerText
+        card.querySelector(".author")
+          ?.innerText
           .toLowerCase() || "";
 
-      card.style.display =
+      if (
         title.includes(query) ||
         author.includes(query)
-          ? "flex"
-          : "none";
+      ) {
+        card.style.display = "flex";
+      } else {
+        card.style.display = "none";
+      }
+
     });
 };
 
 
 // ==========================================
-// BOOK DETAILS
+// VIEW BOOK DETAILS
 // ==========================================
 
-window.viewBookDetails = async function (bookId) {
+window.viewBookDetails = async function (
+  bookId
+) {
 
   try {
 
-    const { data: book, error } =
-      await supabase
-        .from("books")
-        .select("*")
-        .eq("id", bookId)
-        .single();
+    const {
+      data: book,
+      error
+    } = await supabase
+      .from("books")
+      .select("*")
+      .eq("id", bookId)
+      .single();
 
     if (error) {
 
@@ -393,7 +513,9 @@ window.viewBookDetails = async function (bookId) {
 
     if (!book) {
 
-      alert("Book not found.");
+      alert(
+        "Book not found."
+      );
 
       return;
     }
@@ -403,7 +525,14 @@ window.viewBookDetails = async function (bookId) {
         "details-container"
       );
 
-    if (!container) return;
+    if (!container) {
+
+      console.error(
+        "details-container not found"
+      );
+
+      return;
+    }
 
     container.innerHTML = `
 
@@ -443,20 +572,23 @@ window.viewBookDetails = async function (bookId) {
             ₱${Number(book.price || 0).toFixed(2)}
           </h3>
 
-          <p style="margin-bottom:1.5rem;">
-            ${book.description || "No description available."}
+          <p
+            style="margin-bottom:1.5rem;"
+          >
+            ${
+              book.description ||
+              "No description available."
+            }
           </p>
 
           <button
             type="button"
             class="btn btn-primary"
-            onclick="
-              initiatePayment(
-                '${book.id}',
-                ${Number(book.price || 0)},
-                '${book.seller_id}'
-              )
-            "
+            onclick="initiatePayment(
+              '${book.id}',
+              ${Number(book.price || 0)},
+              '${book.seller_id}'
+            )"
           >
             Buy Now with PayMongo
           </button>
@@ -482,6 +614,7 @@ window.viewBookDetails = async function (bookId) {
       );
 
     if (reviewForm) {
+
       reviewForm.classList.toggle(
         "hidden",
         !currentUser
@@ -490,7 +623,9 @@ window.viewBookDetails = async function (bookId) {
 
     await loadReviews(bookId);
 
-    showSection("book-details");
+    showSection(
+      "book-details"
+    );
 
   } catch (err) {
 
@@ -507,10 +642,12 @@ window.viewBookDetails = async function (bookId) {
 
 
 // ==========================================
-// REVIEWS
+// LOAD REVIEWS
 // ==========================================
 
-async function loadReviews(bookId) {
+async function loadReviews(
+  bookId
+) {
 
   const container =
     document.getElementById(
@@ -519,14 +656,19 @@ async function loadReviews(bookId) {
 
   if (!container) return;
 
-  const { data: reviews, error } =
-    await supabase
-      .from("reviews")
-      .select("*")
-      .eq("book_id", bookId)
-      .order("created_at", {
+  const {
+    data: reviews,
+    error
+  } = await supabase
+    .from("reviews")
+    .select("*")
+    .eq("book_id", bookId)
+    .order(
+      "created_at",
+      {
         ascending: false
-      });
+      }
+    );
 
   if (error) {
 
@@ -541,7 +683,10 @@ async function loadReviews(bookId) {
     return;
   }
 
-  if (!reviews || reviews.length === 0) {
+  if (
+    !reviews ||
+    reviews.length === 0
+  ) {
 
     container.innerHTML =
       "<p>No reviews yet. Be the first to review!</p>";
@@ -550,34 +695,41 @@ async function loadReviews(bookId) {
   }
 
   container.innerHTML =
-    reviews.map(r => `
+    reviews.map(function (r) {
 
-      <div
-        style="
-          background:white;
-          padding:1rem;
-          margin:0.5rem 0;
-          border-radius:8px;
-        "
-      >
+      return `
 
-        <strong>
-          Customer
-        </strong>
+        <div
+          style="
+            background:white;
+            padding:1rem;
+            margin:0.5rem 0;
+            border-radius:8px;
+          "
+        >
 
-        <span>
-          - ${"⭐".repeat(
-            Number(r.rating) || 0
-          )}
-        </span>
+          <strong>
+            Customer
+          </strong>
 
-        <p>
-          ${r.comment || ""}
-        </p>
+          <span>
+            -
+            ${
+              "⭐".repeat(
+                Number(r.rating) || 0
+              )
+            }
+          </span>
 
-      </div>
+          <p>
+            ${r.comment || ""}
+          </p>
 
-    `).join("");
+        </div>
+
+      `;
+
+    }).join("");
 }
 
 
@@ -585,41 +737,52 @@ async function loadReviews(bookId) {
 // SUBMIT REVIEW
 // ==========================================
 
-window.handleReviewSubmit = async function (e) {
+window.handleReviewSubmit =
+  async function (e) {
 
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!currentUser) {
+    if (!currentUser) {
 
-    alert("Please login to post a review.");
+      alert(
+        "Please login to post a review."
+      );
 
-    return;
-  }
+      return;
+    }
 
-  const bookId =
-    document.getElementById(
-      "review-book-id"
-    ).value;
+    const bookId =
+      document.getElementById(
+        "review-book-id"
+      )?.value;
 
-  const rating =
-    document.getElementById(
-      "review-rating"
-    ).value;
+    const rating =
+      document.getElementById(
+        "review-rating"
+      )?.value;
 
-  const comment =
-    document.getElementById(
-      "review-comment"
-    ).value.trim();
+    const comment =
+      document.getElementById(
+        "review-comment"
+      )?.value
+        .trim();
 
-  if (!bookId || !rating || !comment) {
+    if (
+      !bookId ||
+      !rating ||
+      !comment
+    ) {
 
-    alert("Please complete your review.");
+      alert(
+        "Please complete your review."
+      );
 
-    return;
-  }
+      return;
+    }
 
-  const { error } =
-    await supabase
+    const {
+      error
+    } = await supabase
       .from("reviews")
       .insert([
         {
@@ -630,81 +793,102 @@ window.handleReviewSubmit = async function (e) {
         }
       ]);
 
-  if (error) {
+    if (error) {
 
-    console.error(
-      "Review submit error:",
+      console.error(
+        "Review submit error:",
+        error
+      );
+
+      alert(
+        error.message
+      );
+
+      return;
+    }
+
+    alert(
+      "Review posted!"
+    );
+
+    const commentBox =
+      document.getElementById(
+        "review-comment"
+      );
+
+    if (commentBox) {
+      commentBox.value = "";
+    }
+
+    await loadReviews(
+      bookId
+    );
+  };
+
+
+// ==========================================
+// SELL NEW BOOK
+// ==========================================
+
+window.handleSellBook =
+  async function (e) {
+
+    e.preventDefault();
+
+    if (!currentUser) {
+
+      alert(
+        "Please login to sell products."
+      );
+
+      return;
+    }
+
+    const title =
+      document.getElementById(
+        "book-title"
+      )?.value
+        .trim();
+
+    const author =
+      document.getElementById(
+        "book-author"
+      )?.value
+        .trim();
+
+    const price =
+      document.getElementById(
+        "book-price"
+      )?.value;
+
+    const image_url =
+      document.getElementById(
+        "book-image"
+      )?.value
+        .trim();
+
+    const description =
+      document.getElementById(
+        "book-desc"
+      )?.value
+        .trim();
+
+    if (
+      !title ||
+      !author ||
+      !price
+    ) {
+
+      alert(
+        "Please complete the required fields."
+      );
+
+      return;
+    }
+
+    const {
       error
-    );
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert("Review posted!");
-
-  document.getElementById(
-    "review-comment"
-  ).value = "";
-
-  await loadReviews(bookId);
-};
-
-
-// ==========================================
-// SELL BOOK
-// ==========================================
-
-window.handleSellBook = async function (e) {
-
-  e.preventDefault();
-
-  if (!currentUser) {
-
-    alert(
-      "Please login to sell products."
-    );
-
-    return;
-  }
-
-  const title =
-    document.getElementById(
-      "book-title"
-    ).value.trim();
-
-  const author =
-    document.getElementById(
-      "book-author"
-    ).value.trim();
-
-  const price =
-    document.getElementById(
-      "book-price"
-    ).value;
-
-  const image_url =
-    document.getElementById(
-      "book-image"
-    ).value.trim();
-
-  const description =
-    document.getElementById(
-      "book-desc"
-    ).value.trim();
-
-  if (!title || !author || !price) {
-
-    alert(
-      "Please complete the required fields."
-    );
-
-    return;
-  }
-
-  const { error } =
-    await supabase
+    } = await supabase
       .from("books")
       .insert([
         {
@@ -717,100 +901,121 @@ window.handleSellBook = async function (e) {
         }
       ]);
 
-  if (error) {
-
-    console.error(
-      "Sell book error:",
-      error
-    );
-
-    alert(error.message);
-
-    return;
-  }
-
-  alert(
-    "Book listed successfully!"
-  );
-
-  showSection("dashboard");
-};
-
-
-// ==========================================
-// PAYMONGO
-// ==========================================
-
-window.initiatePayment = async function (
-  bookId,
-  amount,
-  sellerId
-) {
-
-  if (!currentUser) {
-
-    alert(
-      "Please login to purchase items."
-    );
-
-    return;
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        "/api/create-checkout",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body: JSON.stringify({
-            bookId: bookId,
-            amount: amount,
-            sellerId: sellerId,
-            buyerId: currentUser.id
-          })
-        }
-      );
-
-    const session =
-      await response.json();
-
-    if (session.checkoutUrl) {
-
-      window.location.href =
-        session.checkoutUrl;
-
-    } else {
+    if (error) {
 
       console.error(
-        "Payment response:",
-        session
+        "Sell book error:",
+        error
       );
 
       alert(
-        "Failed to create payment session."
+        error.message
       );
+
+      return;
     }
 
-  } catch (err) {
-
-    console.error(
-      "Payment error:",
-      err
-    );
-
     alert(
-      "Payment initiation failed: " +
-      err.message
+      "Book listed successfully!"
     );
-  }
-};
+
+    showSection(
+      "dashboard"
+    );
+  };
+
+
+// ==========================================
+// PAYMONGO PAYMENT
+// ==========================================
+
+window.initiatePayment =
+  async function (
+    bookId,
+    amount,
+    sellerId
+  ) {
+
+    if (!currentUser) {
+
+      alert(
+        "Please login to purchase items."
+      );
+
+      return;
+    }
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/create-checkout",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+
+              bookId: bookId,
+
+              amount: amount,
+
+              sellerId: sellerId,
+
+              buyerId:
+                currentUser.id
+
+            })
+          }
+        );
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Payment server returned " +
+          response.status
+        );
+      }
+
+      const session =
+        await response.json();
+
+      if (
+        session.checkoutUrl
+      ) {
+
+        window.location.href =
+          session.checkoutUrl;
+
+      } else {
+
+        console.error(
+          "Payment response:",
+          session
+        );
+
+        alert(
+          "Failed to create payment session."
+        );
+      }
+
+    } catch (err) {
+
+      console.error(
+        "Payment error:",
+        err
+      );
+
+      alert(
+        "Payment initiation failed: " +
+        err.message
+      );
+    }
+  };
 
 
 // ==========================================
@@ -821,7 +1026,9 @@ async function loadDashboard() {
 
   if (!currentUser) {
 
-    showSection("auth");
+    showSection(
+      "auth"
+    );
 
     return;
   }
@@ -842,14 +1049,16 @@ async function loadDashboard() {
   // MY BOOKS
   // ----------------------------------------
 
-  const { data: myBooks, error: booksError } =
-    await supabase
-      .from("books")
-      .select("*")
-      .eq(
-        "seller_id",
-        currentUser.id
-      );
+  const {
+    data: myBooks,
+    error: booksError
+  } = await supabase
+    .from("books")
+    .select("*")
+    .eq(
+      "seller_id",
+      currentUser.id
+    );
 
   if (booksError) {
 
@@ -874,7 +1083,9 @@ async function loadDashboard() {
     error: salesError
   } = await supabase
     .from("orders")
-    .select("*, books(title)")
+    .select(
+      "*, books(title)"
+    )
     .eq(
       "seller_id",
       currentUser.id
@@ -897,22 +1108,39 @@ async function loadDashboard() {
 
     salesContainer.innerHTML =
       sales && sales.length
-        ? sales.map(s => `
 
-            <p>
-              Sold
-              <strong>
-                ${s.books?.title || "Book"}
-              </strong>
+        ? sales.map(function (s) {
 
-              for
-              ₱${Number(s.amount || 0).toFixed(2)}
+            return `
 
-              [Status:
-              ${s.status || "Pending"}]
-            </p>
+              <p>
 
-          `).join("")
+                Sold
+
+                <strong>
+                  ${
+                    s.books?.title ||
+                    "Book"
+                  }
+                </strong>
+
+                for
+
+                ₱${Number(
+                  s.amount || 0
+                ).toFixed(2)}
+
+                [Status:
+                ${
+                  s.status ||
+                  "Pending"
+                }]
+
+              </p>
+
+            `;
+
+          }).join("")
 
         : "<p>No sales history found.</p>";
   }
@@ -927,7 +1155,9 @@ async function loadDashboard() {
     error: boughtError
   } = await supabase
     .from("orders")
-    .select("*, books(title)")
+    .select(
+      "*, books(title)"
+    )
     .eq(
       "buyer_id",
       currentUser.id
@@ -950,22 +1180,39 @@ async function loadDashboard() {
 
     boughtContainer.innerHTML =
       bought && bought.length
-        ? bought.map(b => `
 
-            <p>
-              Purchased
-              <strong>
-                ${b.books?.title || "Book"}
-              </strong>
+        ? bought.map(function (b) {
 
-              for
-              ₱${Number(b.amount || 0).toFixed(2)}
+            return `
 
-              [Status:
-              ${b.status || "Pending"}]
-            </p>
+              <p>
 
-          `).join("")
+                Purchased
+
+                <strong>
+                  ${
+                    b.books?.title ||
+                    "Book"
+                  }
+                </strong>
+
+                for
+
+                ₱${Number(
+                  b.amount || 0
+                ).toFixed(2)}
+
+                [Status:
+                ${
+                  b.status ||
+                  "Pending"
+                }]
+
+              </p>
+
+            `;
+
+          }).join("")
 
         : "<p>No purchase history found.</p>";
   }
@@ -976,46 +1223,83 @@ async function loadDashboard() {
 // DASHBOARD TABS
 // ==========================================
 
-window.switchDashTab = function (
-  tabName,
-  event
-) {
-
-  document
-    .querySelectorAll(".dash-tab-content")
-    .forEach(function (el) {
-
-      el.classList.add("hidden");
-    });
-
-
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach(function (btn) {
-
-      btn.classList.remove("active");
-    });
-
-
-  const tab =
-    document.getElementById(
-      "tab-" + tabName
-    );
-
-  if (tab) {
-
-    tab.classList.remove("hidden");
-  }
-
-
-  if (
-    event &&
-    event.currentTarget
+window.switchDashTab =
+  function (
+    tabName,
+    event
   ) {
 
-    event.currentTarget.classList.add(
-      "active"
-    );
+    document
+      .querySelectorAll(
+        ".dash-tab-content"
+      )
+      .forEach(function (el) {
+
+        el.classList.add(
+          "hidden"
+        );
+
+      });
+
+
+    document
+      .querySelectorAll(
+        ".tab-btn"
+      )
+      .forEach(function (btn) {
+
+        btn.classList.remove(
+          "active"
+        );
+
+      });
+
+
+    const tab =
+      document.getElementById(
+        "tab-" + tabName
+      );
+
+    if (tab) {
+
+      tab.classList.remove(
+        "hidden"
+      );
+    }
+
+
+    if (
+      event &&
+      event.currentTarget
+    ) {
+
+      event.currentTarget.classList.add(
+        "active"
+      );
+    }
+  };
+
+
+// ==========================================
+// SUPABASE AUTH STATE LISTENER
+// ==========================================
+
+supabase.auth.onAuthStateChange(
+  function (event, session) {
+
+    if (session?.user) {
+
+      currentUser =
+        session.user;
+
+      updateNavUI(true);
+
+    } else {
+
+      currentUser = null;
+
+      updateNavUI(false);
+    }
   }
-};
+);
 ```
