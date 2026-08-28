@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     }
 
     const response = await fetch(
-      "https://api.paymongo.com/v1/checkout_sessions",
+      "https://api.paymongo.com/v2/checkout_sessions",
       {
         method: "POST",
         headers: {
@@ -29,13 +29,25 @@ export default async function handler(req, res) {
             attributes: {
               line_items: [
                 {
-                  currency: "PHP",
-                  amount: Math.round(Number(amount) * 100),
                   name: "PinkPages Book",
+                  amount: Math.round(Number(amount) * 100),
+                  currency: "PHP",
                   quantity: 1
                 }
               ],
-              description: "PinkPages Book Purchase"
+
+              payment_method_types: [
+                "card",
+                "gcash"
+              ],
+
+              success_url:
+                "https://pink-pages-6eyt.vercel.app",
+
+              cancel_url:
+                "https://pink-pages-6eyt.vercel.app",
+
+              reference_number: bookId
             }
           }
         })
@@ -45,7 +57,7 @@ export default async function handler(req, res) {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error("PayMongo:", result);
+      console.error("PayMongo error:", result);
 
       return res.status(response.status).json({
         error: "PayMongo error",
@@ -67,11 +79,10 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Server error:", error);
 
     return res.status(500).json({
       error: error.message
     });
   }
 }
-
