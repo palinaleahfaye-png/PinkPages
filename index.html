@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PinkPages | Soft & Cozy Online Book Marketplace</title>
+  <meta name="description" content="Discover, buy, and sell cozy books on PinkPages. Join our aesthetic reading community.">
+  <meta name="keywords" content="books, bookstore, online marketplace, buy books online, read">
+  <meta name="robots" content="index, follow">
+  
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="#" class="logo" onclick="showSection('hero')">PinkPages.</a>
+      <nav class="nav-links">
+        <a href="#browse" onclick="showSection('browse')">Browse Books</a>
+        <a href="#about" onclick="showSection('about')">About Us</a>
+        <a href="#contacts" onclick="showSection('contacts')">Contacts</a>
+        <a href="#dashboard" id="nav-dashboard" class="hidden" onclick="showSection('dashboard')">Dashboard</a>
+      </nav>
+      <div class="auth-buttons">
+        <button id="nav-login-btn" class="btn btn-outline" onclick="showSection('auth')">Login / Sign Up</button>
+        <button id="nav-logout-btn" class="btn btn-secondary hidden" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="hero" class="page-section">
+      <div class="hero-grid">
+        <div class="hero-text">
+          <span class="badge">Your Cozy Book Haven</span>
+          <h1>Find your next favorite story in soft pastel pages.</h1>
+          <p>PinkPages connects book lovers around the country. Buy gently used novels or sell yours with fast GCash integration.</p>
+          <div class="hero-cta">
+            <button class="btn btn-primary" onclick="showSection('browse')">Explore Store Page</button>
+            <button class="btn btn-outline" onclick="showSection('add-book')">Sell Your Books</button>
+          </div>
+        </div>
+        <div class="hero-image">
+          <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=600" alt="Cozy Books">
+        </div>
+      </div>
+    </section>
+
+    <section id="browse" class="page-section hidden">
+      <div class="section-header">
+        <h2>Store Page</h2>
+        <p>Curated titles listed by readers near you.</p>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search by title or author..." onkeyup="filterBooks()">
+      </div>
+      <div id="book-grid" class="book-grid"></div>
+    </section>
+
+    <section id="book-details" class="page-section hidden">
+      <button class="btn btn-outline" onclick="showSection('browse')">&larr; Back to Store</button>
+      <div class="details-container" id="details-container"></div>
+      
+      <div class="reviews-wrapper">
+        <h3>Customer Reviews & Ratings</h3>
+        <div id="reviews-list"></div>
+        
+        <form id="add-review-form" class="card-form hidden" onsubmit="handleReviewSubmit(event)">
+          <h4>Leave a Review</h4>
+          <input type="hidden" id="review-book-id">
+          <div class="form-group">
+            <label for="review-rating">Rating (1 to 5 Stars)</label>
+            <select id="review-rating" required>
+              <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+              <option value="4">⭐⭐⭐⭐ (4/5)</option>
+              <option value="3">⭐⭐⭐ (3/5)</option>
+              <option value="2">⭐⭐ (2/5)</option>
+              <option value="1">⭐ (1/5)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="review-comment">Your Review</label>
+            <textarea id="review-comment" required rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit Review</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="add-book" class="page-section hidden">
+      <div class="form-card">
+        <h2>Post Your Own Product</h2>
+        <form id="sell-book-form" onsubmit="handleSellBook(event)">
+          <div class="form-group">
+            <label for="book-title">Book Title</label>
+            <input type="text" id="book-title" required>
+          </div>
+          <div class="form-group">
+            <label for="book-author">Author</label>
+            <input type="text" id="book-author" required>
+          </div>
+          <div class="form-group">
+            <label for="book-price">Price (PHP)</label>
+            <input type="number" step="0.01" id="book-price" required>
+          </div>
+          <div class="form-group">
+            <label for="book-image">Cover Image URL</label>
+            <input type="url" id="book-image" placeholder="https://..." required>
+          </div>
+          <div class="form-group">
+            <label for="book-desc">Description</label>
+            <textarea id="book-desc" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Publish Listing</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="auth" class="page-section hidden">
+      <div class="auth-wrapper">
+        <div class="form-card">
+          <h2 id="auth-title">Login to PinkPages</h2>
+          <form id="auth-form" onsubmit="handleAuth(event)">
+            <div class="form-group" id="name-group">
+              <label for="auth-name">Full Name</label>
+              <input type="text" id="auth-name">
+            </div>
+            <div class="form-group" id="gcash-group">
+              <label for="auth-gcash">GCash Number</label>
+              <input type="text" id="auth-gcash" placeholder="09123456789">
+            </div>
+            <div class="form-group">
+              <label for="auth-email">Email Address</label>
+              <input type="email" id="auth-email" required>
+            </div>
+            <div class="form-group">
+              <label for="auth-password">Password</label>
+              <input type="password" id="auth-password" required>
+            </div>
+            <button type="submit" id="auth-submit-btn" class="btn btn-primary">Login</button>
+          </form>
+          <p class="auth-toggle">
+            <span id="auth-toggle-text">Don't have an account?</span>
+            <a href="#" id="auth-toggle-btn" onclick="toggleAuthMode(event)">Sign Up</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard" class="page-section hidden">
+      <h2>User Dashboard</h2>
+      <p id="welcome-message"></p>
+      
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" onclick="switchDashTab('my-listings')">My Listings</button>
+        <button class="tab-btn" onclick="switchDashTab('sales-history')">Seller Sales History</button>
+        <button class="tab-btn" onclick="switchDashTab('bought-history')">Buyer Bought History</button>
+      </div>
+
+      <div id="tab-my-listings" class="dash-tab-content">
+        <div class="tab-header">
+          <h3>Active Listings</h3>
+          <button class="btn btn-primary" onclick="showSection('add-book')">+ Add New Book</button>
+        </div>
+        <div id="user-books-grid" class="book-grid"></div>
+      </div>
+
+      <div id="tab-sales-history" class="dash-tab-content hidden">
+        <h3>Sales History</h3>
+        <div id="sales-history-list"></div>
+      </div>
+
+      <div id="tab-bought-history" class="dash-tab-content hidden">
+        <h3>Bought History</h3>
+        <div id="bought-history-list"></div>
+      </div>
+    </section>
+
+    <section id="about" class="page-section hidden">
+      <div class="info-card">
+        <h2>About PinkPages</h2>
+        <p>PinkPages is an aesthetic, cozy online book marketplace crafted for readers who adore pastel designs and seamless transactions. We empower independent book sellers and offer readers an easy way to purchase pre-loved or brand-new titles.</p>
+      </div>
+    </section>
+
+    <section id="contacts" class="page-section hidden">
+      <div class="info-card">
+        <h2>Contact Us</h2>
+        <p>Email: support@pinkpages.com</p>
+        <p>Location: Tagum City, Davao Region, Philippines</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <a href="#" class="logo">PinkPages.</a>
+        <p>A soft pink, elegant, and cozy bookish space.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Sitemap</h4>
+        <ul>
+          <li><a href="#" onclick="showSection('hero')">Home</a></li>
+          <li><a href="#" onclick="showSection('browse')">Browse Books</a></li>
+          <li><a href="#" onclick="showSection('about')">About Us</a></li>
+          <li><a href="#" onclick="showSection('contacts')">Contacts</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <p>Terms of Service</p>
+        <p>Privacy Policy</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 PinkPages. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script type="text/javascript">
+    (function(d, t) {
+        var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+        v.onload = function() {
+          window.voiceflow.chat.load({
+            verify: { projectID: 'YOUR_VOICEFLOW_PROJECT_ID' },
+            url: 'https://general-runtime.voiceflow.com',
+            versionID: 'production'
+          });
+        }
+        v.src = "https://cdn.voiceflow.com/widget/bundle.mjs"; v.type = "text/javascript"; s.parentNode.insertBefore(v, s);
+    })(document, 'script');
+  </script>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
