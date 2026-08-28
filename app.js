@@ -321,10 +321,21 @@ async function loadDashboard() {
 }
 
 window.switchDashTab = function(tabName, event) {
-  document.querySelectorAll('.dash-tab-content').forEach(el => el.classList.add('hidden'));
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  
-  document.getElementById(`tab-${tabName}`).classList.remove('hidden');
- if (event && event.currentTarget) {
-  event.currentTarget.classList.add('active');
-} 
+  document.querySelectorAll('.dash-tab-content').forEach(function(el) {
+    el.classList.add('hidden');
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+
+  const tab = document.getElementById('tab-' + tabName);
+
+  if (tab) {
+    tab.classList.remove('hidden');
+  }
+
+  if (event) {
+    event.currentTarget.classList.add('active');
+  }
+};
