@@ -250,7 +250,7 @@ window.switchDashTab = function(tabName, event) {
   document.querySelectorAll('.dash-tab-content').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
 
-  document.getElementById(tab-${tabName}).classList.remove('hidden');
+  document.getElementById('tab-${tabName}').classList.remove('hidden');
 
   if (event) {
     event.target.classList.add('active');
