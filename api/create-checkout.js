@@ -37,8 +37,8 @@ export default async function handler(req, res) {
               ],
 
               payment_method_types: [
-                "card",
-                "gcash"
+                "qrph",
+                
               ],
 
               success_url:
