@@ -98,15 +98,42 @@ async function loadBooks() {
 
 function renderBooks(books, targetElementId) {
   const container = document.getElementById(targetElementId);
+
+  if (!container) {
+    console.error("Container not found:", targetElementId);
+    return;
+  }
+
+  if (!books || books.length === 0) {
+    container.innerHTML = "<p>No books found.</p>";
+    return;
+  }
+
   container.innerHTML = books.map(book => `
     <div class="book-card">
-      <img src="${book.image_url}" alt="${book.title}">
-      <h3>${book.title}</h3>
-      <p class="author">by ${book.author}</p>
-      <p class="price">₱${parseFloat(book.price).toFixed(2)}</p>
-      <button class="btn btn-outline" onclick="viewBookDetails('${book.id}')">View Details</button>
+      <img src="${book.image_url || ''}" alt="${book.title || 'Book'}">
+      <h3>${book.title || 'Untitled Book'}</h3>
+      <p class="author">by ${book.author || 'Unknown Author'}</p>
+      <p class="price">₱${Number(book.price || 0).toFixed(2)}</p>
+
+      <button type="button" class="btn btn-outline view-details-btn">
+        View Details
+      </button>
     </div>
-  `).join('');
+  `).join("");
+
+  container.querySelectorAll(".view-details-btn").forEach((button, index) => {
+    button.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const book = books[index];
+
+      if (book && book.id) {
+        window.viewBookDetails(book.id);
+      }
+    });
+  });
 }
 
 window.filterBooks = function() {
